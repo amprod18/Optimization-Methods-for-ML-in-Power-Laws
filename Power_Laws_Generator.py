@@ -332,11 +332,17 @@ def plot_data(x:np.array, n_bins:int, x_estimated:np.array, px_bootstrap:np.arra
     t_hist = hist.sum()
     hist = hist/bin_width / t_hist
     x_hist = [np.log10(np.min(x)) + np.log10(np.max(x) - np.min(x))*(i) / n_bins for i in range(len(hist))]
+    # make hist-steps adding a new array x_hist + bin_width and using lineplot
     y_base = np.ones(len(x_hist))/bin_width / t_hist
+
+    # Make hist steps
+    hist_ = np.array(list(zip(hist, hist))).flatten()[:-1]
+    x_hist_ = np.power(10, np.array(list(zip(x_hist - np.array([0.00000001 for _ in range(len(x_hist))]), x_hist))).flatten()[1:])
 
     plt.figure()
     # First Subplot: Non-Bootstrapped Data
-    sns.scatterplot(x=np.power(10, x_hist), y=hist)
+    sns.lineplot(x=x_hist_, y=hist_)
+    sns.scatterplot(x=np.power(10, x_hist) + np.array(bin_width)/2, y=hist, label='Generated Data')
     sns.lineplot(x=np.power(10, x_hist), y=y_base, color='black', label='Unitary Bins', linestyle='--', alpha=0.5)
 
     sns.lineplot(x=x_estimated, y=px, color='blue', label='Non-Bootstrapped Data', alpha=0.5)
@@ -696,13 +702,7 @@ if __name__ == '__main__':
     n_samples = 10000
     n_bins = 100
 
-    # generate_power_law_sample(n_samples=n_samples, alpha=2, x_min=1, show_data=True, n_bins=n_bins, bootstrap=100) # Bootstrap has no effect as the parameters are analytic
-    # generate_cutoff_law_sample(n_samples=n_samples, alpha=2, x_c=100, x_min=1, show_data=True, n_bins=n_bins, bootstrap=100)
-    # generate_dslope_law_sample(n_samples=n_samples, alpha1=4, alpha2=1.5, x_c=100, x_min=1, beta=0.5, show_data=True, n_bins=n_bins, bootstrap=100)
-    # generate_dslope_noprob_law_sample(n_samples=n_samples, alpha1=4, alpha2=1.5, x_c=100, beta=0.5, x_min=1, show_data=True, n_bins=n_bins, bootstrap=100)
-
-    import pandas as pd
-    data2 = pd.read_csv('data/c2/13_23_bzr_events_c2.dat', sep='\s', header=None)
-    x2 = data2[1].to_numpy()
-    len(x2)
-    generate_dslope_law_sample(x=x2, alpha1=2, alpha2=1.2, x_c=100, beta=0.8, x_min=1, show_data=True, n_bins=30, bootstrap=100)
+    generate_power_law_sample(n_samples=n_samples, alpha=2, x_min=1, show_data=True, n_bins=n_bins, bootstrap=100) # Bootstrap has no effect as the parameters are analytic
+    generate_cutoff_law_sample(n_samples=n_samples, alpha=2, x_c=100, x_min=1, show_data=True, n_bins=n_bins, bootstrap=100)
+    generate_dslope_law_sample(n_samples=n_samples, alpha1=4, alpha2=1.5, x_c=100, x_min=1, beta=0.5, show_data=True, n_bins=n_bins, bootstrap=100)
+    generate_dslope_noprob_law_sample(n_samples=n_samples, alpha1=4, alpha2=1.5, x_c=100, beta=0.5, x_min=1, show_data=True, n_bins=n_bins, bootstrap=100)
