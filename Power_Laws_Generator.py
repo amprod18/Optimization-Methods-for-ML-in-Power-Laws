@@ -334,42 +334,22 @@ def plot_data(x:np.array, n_bins:int, x_estimated:np.array, px_bootstrap:np.arra
     x_hist = [np.log10(np.min(x)) + np.log10(np.max(x) - np.min(x))*(i) / n_bins for i in range(len(hist))]
     y_base = np.ones(len(x_hist))/bin_width / t_hist
 
-    # 3x1 Subplots
-    fig, ax = plt.subplots(1, 3, figsize=(12, 4))
+    plt.figure()
     # First Subplot: Non-Bootstrapped Data
-    sns.scatterplot(x=np.power(10, x_hist), y=hist, ax=ax[0])
-    sns.lineplot(x=np.power(10, x_hist), y=y_base, color='black', label='Unitary Bins', ax=ax[0], linestyle='--', alpha=0.5)
+    sns.scatterplot(x=np.power(10, x_hist), y=hist)
+    sns.lineplot(x=np.power(10, x_hist), y=y_base, color='black', label='Unitary Bins', linestyle='--', alpha=0.5)
 
-    sns.lineplot(x=x_estimated, y=px, color='green', label='Non-Bootstrapped Data', ax=ax[0])
-    sns.lineplot(x=x_estimated, y=non_bootstrap_errors_sup, color='red', label=None, alpha=0.2, linestyle='--', ax=ax[0])
-    sns.lineplot(x=x_estimated, y=non_bootstrap_errors_inf, color='red', label=None, alpha=0.2, linestyle='--', ax=ax[0])
-    ax[0].set_yscale('log')
-    ax[0].set_xscale('log')
-    ax[0].set_ylabel("PDF(x)")
-    ax[0].set_xlabel("x")
+    sns.lineplot(x=x_estimated, y=px, color='blue', label='Non-Bootstrapped Data', alpha=0.5)
+    sns.lineplot(x=x_estimated, y=px_bootstrap, color='green', label='Bootstrapped Data', alpha=0.5)
 
-    # Second Subplot: Bootstrapped Data
-    sns.scatterplot(x=np.power(10, x_hist), y=hist, ax=ax[1])
-    sns.lineplot(x=np.power(10, x_hist), y=y_base, color='black', label='Unitary Bins', ax=ax[1], linestyle='--', alpha=0.5)
-
-    sns.lineplot(x=x_estimated, y=px_bootstrap, color='green', label='Bootstrapped Data', ax=ax[1])
-    sns.lineplot(x=x_estimated, y=bootstrap_errors_sup, color='red', label=None, alpha=0.2, linestyle='--', ax=ax[1])
-    sns.lineplot(x=x_estimated, y=bootstrap_errors_inf, color='red', label=None, alpha=0.2, linestyle='--', ax=ax[1])
-    ax[1].set_yscale('log')
-    ax[1].set_xscale('log')
-    ax[1].set_xlabel("x")
-    ax[1].set_title(title)
-
-    # Third Subplot: Comparison Between Methods
-    sns.lineplot(x=np.power(10, x_hist), y=y_base, color='black', label='Unitary Bins', ax=ax[2], linestyle='--', alpha=0.5)
-    sns.scatterplot(x=np.power(10, x_hist), y=hist, ax=ax[2])
-
-    sns.lineplot(x=x_estimated, y=px, color='red', label='Non-Bootstrapped Data', alpha=0.5, ax=ax[2])
-    sns.lineplot(x=x_estimated, y=px_bootstrap, color='green', label='Bootstrapped Data', alpha=0.5, ax=ax[2])
+    sns.lineplot(x=x_estimated, y=bootstrap_errors_sup, color='red', label=None, alpha=0.2, linestyle='--')
+    sns.lineplot(x=x_estimated, y=bootstrap_errors_inf, color='red', label=None, alpha=0.2, linestyle='--')
     
-    ax[2].set_yscale('log')
-    ax[2].set_xscale('log')
-    ax[2].set_xlabel("x")
+    plt.title(title)
+    plt.yscale('log')
+    plt.xscale('log')
+    plt.ylabel("PDF(x)")
+    plt.xlabel("x")
 
     plt.legend()
     plt.show()
@@ -464,7 +444,7 @@ def generate_cutoff_law_sample(x:np.array=None, n_samples:int=None, alpha:float=
         x_c_pred = np.array([])
         for _ in range(bootstrap):
             xb = bootstrap_sample(x)
-            result = minimize_by_scipy(xb, cutoff_law_likelihood, (alpha0, x_c0), method='SLSQP', bounds=((2, 6), (0.00001, None)))
+            result = minimize_by_scipy(xb, cutoff_law_likelihood, (alpha0, x_c0), method='SLSQP', bounds=((1.2, 6), (0.00001, None)))
             alpha_pred = np.append(alpha_pred, result.x[0])
             x_c_pred = np.append(x_c_pred, result.x[1])
         # Alpha
@@ -476,7 +456,7 @@ def generate_cutoff_law_sample(x:np.array=None, n_samples:int=None, alpha:float=
     # else:
     #     result = minimize_by_scipy(x, cutoff_law_likelihood, (alpha0, x_c0))
     #     alpha_pred, x_c_pred = result.x[0], result.x[1]
-    result = minimize_by_scipy(x, cutoff_law_likelihood, (alpha0, x_c0), method='SLSQP', bounds=((2, 6), (0.00001, None)))
+    result = minimize_by_scipy(x, cutoff_law_likelihood, (alpha0, x_c0), method='SLSQP', bounds=((1.2, 6), (0.00001, None)))
     alpha_pred, x_c_pred = result.x[0], result.x[1]
     cp1 = time.perf_counter()
     hess = damped_power_hessian(x, alpha_pred, x_c_pred)
@@ -529,7 +509,7 @@ def generate_dslope_law_sample(x:np.array=None, n_samples:int=None, alpha1:float
         x_c_pred = np.array([])
         for _ in range(bootstrap):
             xb = bootstrap_sample(x)
-            result = minimize_by_scipy(xb, dslope_law_likelihood, (alpha1_0, alpha2_0, x_c0), method='SLSQP', bounds=((2, 6), (0.5, 2), (0.00001, None))) # method='SLSQP'
+            result = minimize_by_scipy(xb, dslope_law_likelihood, (alpha1_0, alpha2_0, x_c0), method='SLSQP', bounds=((1.2, 6), (0.5, 2), (0.00001, None))) # method='SLSQP'
             alpha1_pred = np.append(alpha1_pred, result.x[0])
             alpha2_pred = np.append(alpha2_pred, result.x[1])
             x_c_pred = np.append(x_c_pred, result.x[2])
@@ -547,7 +527,7 @@ def generate_dslope_law_sample(x:np.array=None, n_samples:int=None, alpha1:float
         result = minimize_by_scipy(x, dslope_law_likelihood, (alpha1_0, alpha2_0, x_c0))
         alpha1_pred, alpha2_pred, x_c_pred = result.x[0], result.x[1], result.x[2]
 
-    result = minimize_by_scipy(x, dslope_law_likelihood, (alpha1_0, alpha2_0, x_c0), bounds=((2, 6), (0.5, 2), (0.00001, None)))
+    result = minimize_by_scipy(x, dslope_law_likelihood, (alpha1_0, alpha2_0, x_c0), bounds=((1.2, 6), (0.5, 2), (0.00001, None)))
     alpha1_pred, alpha2_pred, x_c_pred = result.x[0], result.x[1], result.x[2]
     cp1 = time.perf_counter()
     hess = dslope_power_hessian(x, alpha1_pred, alpha2_pred, x_c_pred)
@@ -694,6 +674,7 @@ def bayesian_information(x:np.array, likelihood, params:tuple, x_min:float=1):
     l = likelihood(params, x, x_min=x_min)
     return np.log(len(x)) * len(params) + 2 * l
 
+# ----------------------------- Mathematical Toolkit -----------------------------
 def d_uppergamma(x, alpha, x_c, x_min=1):
     vuppergamma = np.vectorize(lambda s,x: np.float64(uppergamma(s, x)))
     alpha_step = 1e-6
@@ -715,7 +696,13 @@ if __name__ == '__main__':
     n_samples = 10000
     n_bins = 100
 
-    generate_power_law_sample(n_samples=n_samples, alpha=2, x_min=1, show_data=True, n_bins=n_bins, bootstrap=100) # Bootstrap has no effect as the parameters are analytic
-    generate_cutoff_law_sample(n_samples=n_samples, alpha=2, x_c=100, x_min=1, show_data=True, n_bins=n_bins, bootstrap=100)
-    generate_dslope_law_sample(n_samples=n_samples, alpha1=4, alpha2=1.5, x_c=100, x_min=1, beta=0.5, show_data=True, n_bins=n_bins, bootstrap=100)
-    generate_dslope_noprob_law_sample(n_samples=n_samples, alpha1=4, alpha2=1.5, x_c=100, beta=0.5, x_min=1, show_data=True, n_bins=n_bins, bootstrap=100)
+    # generate_power_law_sample(n_samples=n_samples, alpha=2, x_min=1, show_data=True, n_bins=n_bins, bootstrap=100) # Bootstrap has no effect as the parameters are analytic
+    # generate_cutoff_law_sample(n_samples=n_samples, alpha=2, x_c=100, x_min=1, show_data=True, n_bins=n_bins, bootstrap=100)
+    # generate_dslope_law_sample(n_samples=n_samples, alpha1=4, alpha2=1.5, x_c=100, x_min=1, beta=0.5, show_data=True, n_bins=n_bins, bootstrap=100)
+    # generate_dslope_noprob_law_sample(n_samples=n_samples, alpha1=4, alpha2=1.5, x_c=100, beta=0.5, x_min=1, show_data=True, n_bins=n_bins, bootstrap=100)
+
+    import pandas as pd
+    data2 = pd.read_csv('data/c2/13_23_bzr_events_c2.dat', sep='\s', header=None)
+    x2 = data2[1].to_numpy()
+    len(x2)
+    generate_dslope_law_sample(x=x2, alpha1=2, alpha2=1.2, x_c=100, beta=0.8, x_min=1, show_data=True, n_bins=30, bootstrap=100)
